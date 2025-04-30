@@ -1,0 +1,20 @@
+{
+  "name": "pulse",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@playwright/test": "^1.52.0",
+    "cheerio": "^1.0.0",
+    "crawlbase": "^1.0.2",
+    "dotenv": "^16.5.0",
+    "inquirer": "^8.2.5",
+    "yargs": "^17.7.2"
+  }
+}
