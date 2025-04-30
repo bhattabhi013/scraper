@@ -41,15 +41,33 @@ async function searchProduct(productName, source) {
       const link = $(element).find(sourceConfig.linkSelector).attr("href");
 
       if (title && link) {
-        const fullLink = link.startsWith("http")
-          ? link
-          : `${sourceConfig.baseUrl}${link}`;
-        const reviewsLink = fullLink.replace(/\/$/, "") + "/reviews";
+        let reviewsLink;
 
-        searchResults.push({
-          title,
-          reviewsLink,
-        });
+        if (source === "Capterra") {
+          // For Capterra, find the specific reviews link
+          const reviewsAnchor = $(element).find("a[href*='/reviews/']").first();
+          reviewsLink = reviewsAnchor.length
+            ? reviewsAnchor.attr("href")
+            : null;
+
+          // If no specific reviews link found, construct it from the product link
+          if (!reviewsLink && link) {
+            reviewsLink = link.replace(/\/$/, "") + "/reviews/";
+          }
+        } else {
+          // For G2, use the existing logic
+          const fullLink = link.startsWith("http")
+            ? link
+            : `${sourceConfig.baseUrl}${link}`;
+          reviewsLink = fullLink.replace(/\/$/, "") + "/reviews";
+        }
+
+        if (reviewsLink) {
+          searchResults.push({
+            title,
+            reviewsLink,
+          });
+        }
       }
     });
 
@@ -137,7 +155,7 @@ function generateUrlFromProductName(productName, source) {
   if (source === "G2") {
     return `${config.sources.g2.baseUrl}/products/${formattedName}/reviews`;
   } else if (source === "Capterra") {
-    return `${config.sources.capterra.baseUrl}/p/${formattedName}/reviews`;
+    return `${config.sources.capterra.baseUrl}/${formattedName}/reviews`;
   }
 
   throw new Error(`Unsupported source: ${source}`);
@@ -262,11 +280,8 @@ async function scrapeAllPages_G2(baseUrl, startDate, endDate) {
   let reviewChunks = [];
   let productInfo = {};
 
-  console.log(`Starting to scrape ${baseUrl} (G2)`);
-
   while (hasNextPage) {
     const currentUrl = generatePageUrl(baseUrl, currentPage);
-    console.log(`Scraping page ${currentPage}: ${currentUrl}`);
 
     try {
       const response = await fetchWithRetry(
@@ -291,9 +306,6 @@ async function scrapeAllPages_G2(baseUrl, startDate, endDate) {
       // Store reviews in chunks instead of one big array
       if (parsedResult.productData.allReviews.length > 0) {
         reviewChunks.push(parsedResult.productData.allReviews);
-        console.log(
-          `Found ${parsedResult.productData.allReviews.length} reviews on page ${currentPage}`
-        );
       } else {
         console.warn(`Page ${currentPage} returned 0 reviews.`);
       }
@@ -444,9 +456,6 @@ async function main() {
     let searchResults = await searchProduct(productName, source);
 
     if (searchResults.length > 0) {
-      console.log(
-        `Found ${searchResults.length} potential matches for "${productName}" on ${source}.`
-      );
       url = await promptUserToSelectProduct(searchResults);
     }
 
@@ -499,13 +508,6 @@ async function main() {
       process.exit(1);
     }
 
-    console.log("Scraping complete.");
-    console.log("Product Name:", result.productName);
-    console.log("Total Reviews (from the website):", result.totalReviews);
-    console.log(
-      "Scraped Reviews Count (after filtering):",
-      result.totalScrapedReviews
-    );
     console.log("Output file saved to:", result.filePath);
   } catch (error) {
     console.error("Error during scraping:", error);

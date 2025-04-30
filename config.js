@@ -17,10 +17,11 @@ module.exports = {
     },
     capterra: {
       baseUrl: "https://www.capterra.com",
-      searchUrl: "https://www.capterra.com/search/?q=",
-      selector: "div.search-result-card",
-      titleSelector: "h2.search-result-card__title",
-      linkSelector: "a.search-result-card__product-link",
+      searchUrl: "https://www.capterra.com/search/?query=",
+      selector: "div[data-testid='search-product-card']",
+      titleSelector: "a[data-testid='product-name']",
+      linkSelector: "a[data-testid='product-name']",
+      reviewsLinkSelector: "a[href$='/reviews/']",
     },
   },
 };
