@@ -44,7 +44,7 @@ A lightweight Node.js tool that collects reviews from G2 and Capterra based on u
 Once setup is complete, launch the scraper with:
 
 ```bash
-node scrapper.js
+node review-scraper.js
 ```
 
 You'll be prompted to:
